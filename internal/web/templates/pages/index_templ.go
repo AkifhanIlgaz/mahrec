@@ -137,7 +137,7 @@ func Index(goals []models.Goal) templ.Component {
 							}()
 						}
 						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Okunacak ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Münâcât ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

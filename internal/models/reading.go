@@ -29,14 +29,13 @@ func (r Reading) IsEmpty() bool {
 	return r.Arabic == "" && r.Turkish == "" && r.ImagePath == "" && len(r.Steps) == 0
 }
 
-// TitlePresets are the choices offered in the "Okunacak" dropdown.
+// TitlePresets are the choices offered in the "Münacaat" dropdown.
 var TitlePresets = []string{
 	"Salât-ı Münciye",
 	"Salât-ı Fethiyye",
 	"Salât-ı Nâriye",
-	"Kelime-i Tevhid",
 	"İstiğfar-ı Şerif",
-	"Lâ havle velâ kuvvete illâ billâhil aliyyil azîm",
+	"Havkale (Lâ Havle)",
 	"Cünnetü'l-Esmâ",
 }
 
@@ -46,9 +45,11 @@ var titleReadings = map[string]Reading{
 	"Salât-ı Münciye":  {ImagePath: "/static/images/readings/munciye.png"},
 	"Salât-ı Fethiyye": {ImagePath: "/static/images/readings/fethiyye.png"},
 	"Salât-ı Nâriye":   {ImagePath: "/static/images/readings/nariye.png"},
-	"Kelime-i Tevhid":  {},
-	"İstiğfar-ı Şerif": {},
-	"Lâ Havle Tesbihi": {},
+	"İstiğfar-ı Şerif": {ImagePath: "/static/images/readings/istigfar.jpeg"},
+	"Havkale (Lâ Havle)": {
+		Arabic:  "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ",
+		Turkish: "Lâ havle velâ kuvvete illâ billâhil aliyyil azîm.",
+	},
 	"Cünnetü'l-Esmâ": {
 		Steps: []ReadingStep{
 			{

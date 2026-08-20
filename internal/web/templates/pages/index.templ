@@ -21,7 +21,7 @@ templ Index(goals []models.Goal) {
 			@card.Content() {
 				<form id="goal-form" class="flex flex-col gap-3">
 					<div class="flex flex-col gap-1.5">
-						@field.Label(field.LabelProps{}, "text-xs") { Okunacak }
+						@field.Label(field.LabelProps{}, "text-xs") { Münâcât }
 						@selectbox.Select(selectbox.Props{FullWidth: true, Placeholder: "Seç...", IsRequired: true, Attrs: templ.Attributes{"id": "title-select"}}) {
 							@selectbox.Trigger("min-h-8 py-1.5 px-2.5 text-sm") {
 								@selectbox.Value(selectbox.ValueProps{})
