@@ -1,0 +1,22 @@
+[Unit]
+Description=mahrec goal-tracking app
+After=network.target
+
+[Service]
+Type=simple
+User=mahrec
+WorkingDirectory=/opt/mahrec
+Environment=ADDR=127.0.0.1:3000
+Environment=DB_PATH=/opt/mahrec/data/mahrec.db
+ExecStart=/opt/mahrec/bin/server
+Restart=on-failure
+RestartSec=2
+
+# Basic hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/mahrec/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
