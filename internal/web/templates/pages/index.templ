@@ -1,0 +1,76 @@
+package pages
+
+import (
+	"mahrec/internal/models"
+	"mahrec/internal/web/templates/components"
+	"mahrec/internal/web/templates/layout"
+	"mahrec/internal/web/ui/button"
+	"mahrec/internal/web/ui/card"
+	"mahrec/internal/web/ui/field"
+	"mahrec/internal/web/ui/listbox"
+	"mahrec/internal/web/ui/selectbox"
+	"mahrec/internal/web/ui/textfield"
+)
+
+templ Index(goals []models.Goal) {
+	@layout.Base("Hedeflerim") {
+		@card.Card(card.Props{}) {
+			@card.Header() {
+				@card.Title() { Yeni Hedef }
+			}
+			@card.Content() {
+				<form id="goal-form" class="flex flex-col gap-3">
+					<div class="flex flex-col gap-1.5">
+						@field.Label(field.LabelProps{}, "text-xs") { Okunacak }
+						@selectbox.Select(selectbox.Props{FullWidth: true, Placeholder: "Seç...", IsRequired: true, Attrs: templ.Attributes{"id": "title-select"}}) {
+							@selectbox.Trigger("min-h-8 py-1.5 px-2.5 text-sm") {
+								@selectbox.Value(selectbox.ValueProps{})
+								@selectbox.Indicator()
+							}
+							@selectbox.Popover(selectbox.PopoverProps{}) {
+								@listbox.ListBox(listbox.Props{}) {
+									for _, preset := range models.TitlePresets {
+										@listbox.Item(listbox.ItemProps{
+											ID: preset,
+											Attrs: templ.Attributes{
+												"onclick": "document.getElementById('title-value').value=this.textContent.trim()",
+											},
+										}) {
+											{ preset }
+											@listbox.ItemIndicator()
+										}
+									}
+								}
+							}
+						}
+						<input type="hidden" name="title" id="title-value" required/>
+					</div>
+					<div class="flex gap-3">
+						@textfield.TextField(textfield.Props{Name: "target_count", Type: "number", IsRequired: true}, "w-24") {
+							@field.Label(field.LabelProps{For: "target-input"}, "text-xs") { Adet }
+							@textfield.Input(textfield.InputProps{Placeholder: "100", Attrs: templ.Attributes{"id": "target-input", "min": "1"}}, "text-sm py-1.5 px-2.5")
+						}
+						@textfield.TextField(textfield.Props{FullWidth: true, Name: "description"}, "flex-1") {
+							@field.Label(field.LabelProps{For: "description-input"}, "text-xs") { Açıklama }
+							@textfield.Input(textfield.InputProps{Placeholder: "Farklı bir şey mi? Buraya yaz", FullWidth: true, Attrs: templ.Attributes{"id": "description-input"}}, "text-sm py-1.5 px-2.5")
+						}
+					</div>
+					@button.Button(button.Props{Variant: button.VariantPrimary, Size: button.SizeSm, FullWidth: true, Attrs: templ.Attributes{
+						"hx-post":   "/goals",
+						"hx-target": "#goal-list",
+						"hx-swap":   "afterbegin",
+					}}) {
+						Ekle
+					}
+					@components.FormError("")
+
+				</form>
+			}
+		}
+		<section class="flex flex-col gap-4">
+			<h2 class="px-1 text-base font-semibold">Hedeflerim</h2>
+			<p id="empty-state" class="px-1 text-sm text-muted" if len(goals) != 0 { hidden }>Henüz bir hedefin yok. Yukarıdan yeni bir hedef ekleyerek başla.</p>
+			@components.GoalList(goals)
+		</section>
+	}
+}

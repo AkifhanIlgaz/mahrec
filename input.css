@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@source "./internal/web/templates";
+@source "./internal/web/ui";
+
+/*
+ * HeroUI Theme Customization
+ * Add this to your global.css after importing @heroui/styles
+ * Only includes variables users need to customize
+ * @see https://heroui.com/docs/react/getting-started/theming
+ *
+ * Light mode only — there is no dark/light toggle in this app.
+ */
+
+:root {
+  /* Theme Colors */
+  --accent: oklch(27.03% 0.1017 258.37);
+  --accent-foreground: oklch(99.11% 0 0);
+  --background: oklch(97.02% 0.0081 258.37);
+  --border: oklch(90.00% 0.0081 258.37);
+  --danger: oklch(65.32% 0.2366 26.28);
+  --danger-foreground: oklch(99.11% 0 0);
+  --default: oklch(94.00% 0.0081 258.37);
+  --default-foreground: oklch(21.03% 0.0059 258.37);
+  --field-background: oklch(100.00% 0.0040 258.37);
+  --field-border: transparent;
+  --field-foreground: oklch(21.03% 0.0081 258.37);
+  --field-placeholder: oklch(55.17% 0.0162 258.37);
+  --focus: oklch(27.03% 0.1017 258.37);
+  --foreground: oklch(21.03% 0.0081 258.37);
+  --muted: oklch(55.17% 0.0162 258.37);
+  --overlay: oklch(100.00% 0.0024 258.37);
+  --overlay-foreground: oklch(21.03% 0.0081 258.37);
+  --scrollbar: oklch(87.10% 0.0081 258.37);
+  --segment: oklch(100.00% 0.0081 258.37);
+  --segment-foreground: oklch(21.03% 0.0081 258.37);
+  --separator: oklch(92.00% 0.0081 258.37);
+  --success: oklch(73.29% 0.1966 151.35);
+  --success-foreground: oklch(21.03% 0.0059 151.35);
+  --surface: oklch(100.00% 0.0040 258.37);
+  --surface-foreground: oklch(21.03% 0.0081 258.37);
+  --surface-secondary: oklch(95.24% 0.0065 258.37);
+  --surface-secondary-foreground: oklch(21.03% 0.0081 258.37);
+  --surface-tertiary: oklch(93.73% 0.0065 258.37);
+  --surface-tertiary-foreground: oklch(21.03% 0.0081 258.37);
+  --warning: oklch(78.19% 0.1611 72.87);
+  --warning-foreground: oklch(21.03% 0.0059 72.87);
+
+  /* Border Radius */
+  --radius: 0.5rem;
+  --field-radius: 0.625rem;
+
+  /* Font Family */
+  /* Loaded via Google Fonts in layout.templ */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+	font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* iOS Safari auto-zooms the whole page into any text/number input, select,
+   or textarea whose computed font-size is under 16px, and doesn't zoom back
+   out on blur — so after tapping the amount/target/description fields
+   (which use text-sm, i.e. 14px) the page is left zoomed in with goal cards
+   further down pushed out of view until the user manually pinches back out.
+   Force 16px on small screens, where Safari's auto-zoom actually applies. */
+@media (max-width: 639px) {
+	input,
+	select,
+	textarea {
+		font-size: 16px;
+	}
+}
+
+/* Not every component defines its own color transition (cards, badges,
+   plain text), so the light/dark toggle otherwise jumps instantly on those.
+   Give every element a shared color transition for a smooth theme switch. */
+@media (prefers-reduced-motion: no-preference) {
+	*,
+	*::before,
+	*::after {
+		transition-property: background-color, border-color, color, box-shadow, fill, stroke, outline-color;
+		transition-duration: 200ms;
+		transition-timing-function: ease;
+	}
+}

@@ -1,0 +1,62 @@
+package layout
+
+templ Base(title string) {
+	<!DOCTYPE html>
+	<html lang="tr">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } · Mahrec</title>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+			<script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"></script>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+			<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap"/>
+			<link rel="stylesheet" href="/static/css/app.css"/>
+			<script>
+				// Clears a Select's displayed value + list-box selection state; used
+				// after successfully submitting the new-goal form.
+				function resetSelectVisual(rootId) {
+					var root = document.getElementById(rootId);
+					if (!root) return;
+					var value = root.querySelector('[data-slot="select-value"]');
+					if (value) {
+						value.setAttribute("data-placeholder", "true");
+						value.textContent = value.getAttribute("data-placeholder-text") || "";
+					}
+					root.querySelectorAll('[data-slot="list-box-item"]').forEach(function (item) {
+						item.removeAttribute("data-selected");
+						item.setAttribute("aria-selected", "false");
+						var indicator = item.querySelector('[data-slot="list-box-item-indicator"]');
+						if (indicator) indicator.removeAttribute("data-visible");
+					});
+				}
+			</script>
+		</head>
+		<body class="min-h-screen bg-background text-foreground antialiased" hx-ext="morph">
+			<header class="flex items-center justify-center border-b border-separator px-6 py-4">
+				<a href="/" class="text-2xl leading-none text-accent" style="font-family: 'Amiri', serif;" title="Mahrec" aria-label="Mahrec">
+					مخرج
+				</a>
+			</header>
+			<main class="mx-auto flex max-w-xl flex-col gap-6 p-6">
+				{ children... }
+			</main>
+			<script src="/static/js/animations.js"></script>
+			<script src="/static/js/alert_dialog.js"></script>
+			<script src="/static/js/list_box.js"></script>
+			<script src="/static/js/select.js"></script>
+			<script>
+				// Server fires this (via HX-Trigger) only when a goal was actually
+				// created, so a validation error never wipes what the user typed.
+				document.body.addEventListener("goal-created", function () {
+					var form = document.getElementById("goal-form");
+					if (form) form.reset();
+					var titleValue = document.getElementById("title-value");
+					if (titleValue) titleValue.value = "";
+					resetSelectVisual("title-select");
+				});
+			</script>
+		</body>
+	</html>
+}

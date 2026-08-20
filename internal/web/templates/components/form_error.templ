@@ -1,0 +1,17 @@
+package components
+
+import "mahrec/internal/web/ui/field"
+
+// FormError renders (or, when message is empty, clears) the validation
+// error banner for the new-goal form, using heroui-go's FieldError component.
+// It's always sent as an out-of-band swap (matched by id) so it can ride
+// along with the normal hx-target response without disturbing it.
+templ FormError(message string) {
+	<div id="goal-form-error" hx-swap-oob="true">
+		if message != "" {
+			@field.FieldError("text-sm") {
+				{ message }
+			}
+		}
+	</div>
+}

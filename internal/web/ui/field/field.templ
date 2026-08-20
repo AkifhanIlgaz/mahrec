@@ -1,0 +1,39 @@
+// Package field provides form field helpers (Label, Description, FieldError),
+// vendored from workspace/heroui-go (components/field.templ, package "components").
+package field
+
+import "mahrec/internal/web/ui/utils"
+
+type LabelProps struct {
+	For   string
+	Attrs templ.Attributes
+}
+
+templ Label(p LabelProps, tw ...string) {
+	<label
+		class={ templ.SafeClass(utils.Cn("label", tw)) }
+		data-slot="label"
+		if p.For != "" {
+			for={ p.For }
+		}
+		{ p.Attrs... }
+	>
+		{ children... }
+	</label>
+}
+
+templ Description(tw ...string) {
+	<span class={ templ.SafeClass(utils.Cn("description", tw)) } data-slot="description">
+		{ children... }
+	</span>
+}
+
+templ FieldError(tw ...string) {
+	<span
+		class={ templ.SafeClass(utils.Cn("field-error", tw)) }
+		data-slot="field-error"
+		data-visible="true"
+	>
+		{ children... }
+	</span>
+}

@@ -1,0 +1,100 @@
+// Package icons contains a few Lucide (https://lucide.dev, ISC licensed) icon
+// paths inlined as templ components, following the same stroke-based SVG
+// shape used by heroui-go's own components/icons.templ.
+package icons
+
+import "mahrec/internal/web/ui/utils"
+
+templ Sun(tw ...string) {
+	<svg
+		class={ utils.Cn(tw) }
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<circle cx="12" cy="12" r="4"></circle>
+		<path d="M12 2v2"></path>
+		<path d="M12 20v2"></path>
+		<path d="m4.93 4.93 1.41 1.41"></path>
+		<path d="m17.66 17.66 1.41 1.41"></path>
+		<path d="M2 12h2"></path>
+		<path d="M20 12h2"></path>
+		<path d="m6.34 17.66-1.41 1.41"></path>
+		<path d="m19.07 4.93-1.41 1.41"></path>
+	</svg>
+}
+
+templ Moon(tw ...string) {
+	<svg
+		class={ utils.Cn(tw) }
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+	</svg>
+}
+
+templ Trash(tw ...string) {
+	<svg
+		class={ utils.Cn(tw) }
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<path d="M3 6h18"></path>
+		<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+		<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+		<line x1="10" x2="10" y1="11" y2="17"></line>
+		<line x1="14" x2="14" y1="11" y2="17"></line>
+	</svg>
+}
+
+// Status renders the default AlertDialog/Alert status icon, vendored from
+// heroui-go's components/icons.templ (StatusIcon).
+templ Status(dataSlot string, status string) {
+	<svg
+		data-slot={ dataSlot }
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		switch status {
+			case "success":
+				<circle cx="12" cy="12" r="10"></circle>
+				<path d="m9 12 2 2 4-4"></path>
+			case "warning":
+				<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+				<path d="M12 9v4"></path>
+				<path d="M12 17h.01"></path>
+			case "danger":
+				<circle cx="12" cy="12" r="10"></circle>
+				<path d="M12 8v4"></path>
+				<path d="M12 16h.01"></path>
+			default:
+				<circle cx="12" cy="12" r="10"></circle>
+				<path d="M12 16v-4"></path>
+				<path d="M12 8h.01"></path>
+		}
+	</svg>
+}

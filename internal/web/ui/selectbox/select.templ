@@ -1,0 +1,176 @@
+// Package selectbox is vendored from workspace/heroui-go (components/seleect/select.templ,
+// package "seleect" there — renamed here since "select" is a Go keyword).
+package selectbox
+
+import (
+	"context"
+
+	"mahrec/internal/web/ui/utils"
+)
+
+type Variant string
+
+const (
+	VariantPrimary   Variant = "primary"
+	VariantSecondary Variant = "secondary"
+)
+
+func (v Variant) String() string {
+	return string(v)
+}
+
+type selectCtxKey int
+
+const selectRootKey selectCtxKey = 0
+
+type Props struct {
+	Variant     Variant // default: primary
+	FullWidth   bool
+	Placeholder string
+	IsDisabled  bool
+	IsInvalid   bool
+	IsRequired  bool
+	Attrs       templ.Attributes
+}
+
+func selectRoot(ctx context.Context) Props {
+	if p, ok := ctx.Value(selectRootKey).(Props); ok {
+		return p
+	}
+	return Props{}
+}
+
+// Inside reports whether ctx is inside a Select root, used by ListBox to pick
+// its default selection mode.
+func Inside(ctx context.Context) bool {
+	_, ok := ctx.Value(selectRootKey).(Props)
+	return ok
+}
+
+templ Select(p Props, tw ...string) {
+	{{
+	if p.Variant == "" {
+		p.Variant = VariantPrimary
+	}
+	ctx = context.WithValue(ctx, selectRootKey, p)
+	}}
+	<div
+		class={ templ.SafeClass(utils.Cn(
+			"select",
+			"select--"+p.Variant.String(),
+			utils.If(p.FullWidth, "select--full-width", ""),
+			tw,
+		)) }
+		data-slot="select"
+		if p.IsDisabled {
+			data-disabled="true"
+		}
+		if p.IsInvalid {
+			data-invalid="true"
+			aria-invalid="true"
+		}
+		if p.IsRequired {
+			data-required="true"
+		}
+		{ p.Attrs... }
+	>
+		{ children... }
+	</div>
+}
+
+templ Trigger(tw ...string) {
+	{{ root := selectRoot(ctx) }}
+	<button
+		type="button"
+		class={ templ.SafeClass(utils.Cn(
+			"select__trigger",
+			utils.If(root.FullWidth, "select__trigger--full-width", ""),
+			tw,
+		)) }
+		data-slot="select-trigger"
+		aria-haspopup="listbox"
+		aria-expanded="false"
+		disabled?={ root.IsDisabled }
+	>
+		{ children... }
+	</button>
+}
+
+type ValueProps struct {
+	// Text is the selected item's display text; falls back to the root Placeholder.
+	Text string
+}
+
+templ Value(p ValueProps) {
+	{{
+	root := selectRoot(ctx)
+	placeholder := p.Text == ""
+	text := p.Text
+	if placeholder {
+		text = root.Placeholder
+	}
+	}}
+	<span
+		class="select__value"
+		data-slot="select-value"
+		if placeholder {
+			data-placeholder="true"
+		}
+	>
+		{ text }
+	</span>
+}
+
+templ Indicator(tw ...string) {
+	<svg
+		class={ templ.SafeClass(utils.Cn("select__indicator", tw)) }
+		data-slot="select-default-indicator"
+		data-open="false"
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		<path d="m6 9 6 6 6-6"></path>
+	</svg>
+}
+
+type PopoverPlacement string
+
+const (
+	PopoverPlacementTop    PopoverPlacement = "top"
+	PopoverPlacementBottom PopoverPlacement = "bottom"
+	PopoverPlacementLeft   PopoverPlacement = "left"
+	PopoverPlacementRight  PopoverPlacement = "right"
+)
+
+func (p PopoverPlacement) String() string {
+	return string(p)
+}
+
+type PopoverProps struct {
+	Placement PopoverPlacement // default: bottom
+	Attrs     templ.Attributes
+}
+
+templ Popover(p PopoverProps, tw ...string) {
+	{{
+	if p.Placement == "" {
+		p.Placement = PopoverPlacementBottom
+	}
+	}}
+	<div
+		class={ templ.SafeClass(utils.Cn("select__popover", tw)) }
+		data-slot="select-popover"
+		data-placement={ p.Placement.String() }
+		role="listbox"
+		hidden
+		{ p.Attrs... }
+	>
+		{ children... }
+	</div>
+}

@@ -1,0 +1,68 @@
+// Package button is vendored from workspace/heroui-go (components/button/button.templ).
+package button
+
+import "mahrec/internal/web/ui/utils"
+
+type Variant string
+
+const (
+	VariantPrimary    Variant = "primary"
+	VariantSecondary  Variant = "secondary"
+	VariantTertiary   Variant = "tertiary"
+	VariantDanger     Variant = "danger"
+	VariantDangerSoft Variant = "danger-soft"
+	VariantGhost      Variant = "ghost"
+	VariantOutline    Variant = "outline"
+)
+
+func (v Variant) String() string {
+	if v == "" {
+		return string(VariantPrimary)
+	}
+	return string(v)
+}
+
+type Size string
+
+const (
+	SizeSm Size = "sm"
+	SizeMd Size = "md"
+	SizeLg Size = "lg"
+)
+
+func (s Size) String() string {
+	if s == "" {
+		return string(SizeMd)
+	}
+	return string(s)
+}
+
+type Props struct {
+	Variant    Variant // default: primary
+	Size       Size    // default: md
+	IsIconOnly bool
+	FullWidth  bool
+	IsDisabled bool
+	IsPending  bool
+	Attrs      templ.Attributes
+}
+
+templ Button(p Props, tw ...string) {
+	<button
+		type="button"
+		class={ utils.Cn(
+			"button",
+			"button--"+p.Variant.String(),
+			"button--"+p.Size.String(),
+			utils.If(p.IsIconOnly, "button--icon-only", ""),
+			utils.If(p.FullWidth, "button--full-width", ""),
+			tw,
+		) }
+		data-slot="button"
+		disabled?={ p.IsDisabled }
+		data-pending={ utils.BoolStr(p.IsPending) }
+		{ p.Attrs... }
+	>
+		{ children... }
+	</button>
+}
