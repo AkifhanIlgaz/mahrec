@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 
 	"mahrec/internal/middleware"
+	"mahrec/internal/models"
 	"mahrec/internal/store"
 	"mahrec/internal/web/templates/components"
 	"mahrec/internal/web/templates/pages"
@@ -111,6 +114,33 @@ func (h *GoalHandler) Reset(c fiber.Ctx) error {
 
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTMLCharsetUTF8)
 	return components.GoalItem(goal).Render(c.Context(), c.Response().BodyWriter())
+}
+
+// Tally renders the fullscreen "tesbih çekme" screen for a goal: the
+// reading to recite plus a client-side +1 counter. Saving is a plain fetch
+// from the page's own JS straight to Increment for this same goal — the
+// user already knows what they're reading, since they opened this screen
+// from that goal's own card.
+func (h *GoalHandler) Tally(c fiber.Ctx) error {
+	clientID := middleware.FromCtx(c)
+
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid goal id")
+	}
+
+	goal, err := h.goals.Get(clientID, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fiber.NewError(fiber.StatusNotFound, "goal not found")
+		}
+		return err
+	}
+
+	reading, hasReading := models.ReadingFor(goal.Title)
+
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTMLCharsetUTF8)
+	return pages.Tally(goal, reading, hasReading).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func (h *GoalHandler) Delete(c fiber.Ctx) error {

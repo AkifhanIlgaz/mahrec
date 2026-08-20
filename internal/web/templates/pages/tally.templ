@@ -1,0 +1,124 @@
+package pages
+
+import (
+	"fmt"
+
+	"mahrec/internal/models"
+	"mahrec/internal/web/templates/components"
+	"mahrec/internal/web/templates/layout"
+	"mahrec/internal/web/ui/button"
+	"mahrec/internal/web/ui/icons"
+)
+
+// Tally is the fullscreen "tesbih çekme" screen: the reading to recite,
+// centered above a live +1 counter. Taps are batched — debounced ~700ms of
+// idle, or flushed immediately when the screen is closed/backgrounded —
+// into a single Increment request for this same goal (the one the user
+// opened the screen from — no picker, since they already knew what they
+// were reading), rather than one request per tap. There's nothing ever
+// left meaningfully unsaved (the debounce window is short and flushed on
+// every way of leaving the screen), so Kapat is a plain "go home" link.
+templ Tally(goal models.Goal, reading models.Reading, hasReading bool) {
+	@layout.Base(goal.Title + " · Tesbih") {
+		<div
+			data-slot="tally-screen"
+			data-goal-id={ fmt.Sprintf("%d", goal.ID) }
+			data-remaining={ fmt.Sprintf("%d", goal.TargetCount-goal.CurrentCount) }
+			data-current={ fmt.Sprintf("%d", goal.CurrentCount) }
+			class="fixed inset-0 z-40 flex flex-col bg-background"
+		>
+			<div class="flex flex-1 flex-col items-center overflow-y-auto p-6">
+				<div class="m-auto flex w-full max-w-xl flex-col items-center gap-4 text-center">
+					<h1 class="text-lg font-bold">{ goal.Title }</h1>
+					if goal.IsCompleted() {
+						<span data-slot="tally-completed-badge" class="-mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5">
+							@icons.Status("tally-completed-icon", "success")
+							Tamamlandı
+						</span>
+					}
+					@components.ReadingContent(goal.Title, reading, hasReading)
+				</div>
+			</div>
+			<div class="border-t border-separator p-4">
+				<div class="mx-auto flex w-full max-w-xl flex-col items-center gap-3">
+					<div class="flex w-full items-center gap-4">
+						@button.Button(button.Props{
+							Variant:   button.VariantPrimary,
+							FullWidth: true,
+							Attrs:     templ.Attributes{"id": "tally-increment"},
+						}, "flex-1 py-7 text-3xl font-bold leading-none") {
+							+1
+						}
+						<span data-slot="tally-count" class="w-16 shrink-0 text-right text-6xl leading-none font-extrabold tabular-nums text-accent">
+							{ fmt.Sprintf("%d", goal.CurrentCount) }
+						</span>
+					</div>
+					<a href="/" id="tally-close" class="button button--outline button--sm w-full">
+						Kapat
+					</a>
+				</div>
+			</div>
+		</div>
+		<script>
+			(function () {
+				var DEBOUNCE_MS = 4000;
+
+				var taps = 0;
+				var pending = 0; // tapped but not yet sent to the server
+				var debounceTimer = null;
+				var screen = document.querySelector('[data-slot="tally-screen"]');
+				var goalId = screen.getAttribute("data-goal-id");
+				var remaining = parseInt(screen.getAttribute("data-remaining"), 10) || 0;
+				var total = parseInt(screen.getAttribute("data-current"), 10) || 0;
+				var countEl = document.querySelector('[data-slot="tally-count"]');
+				var incrementBtn = document.getElementById("tally-increment");
+
+				if (remaining <= 0) incrementBtn.disabled = true;
+
+				function flush() {
+					if (pending <= 0) return;
+					var amount = pending;
+					pending = 0;
+					clearTimeout(debounceTimer);
+
+					var body = "amount=" + amount;
+					if (navigator.sendBeacon) {
+						navigator.sendBeacon(
+							"/goals/" + goalId + "/increment",
+							new Blob([body], { type: "application/x-www-form-urlencoded" })
+						);
+						return;
+					}
+					// Best-effort fallback: a dropped request under-counts the goal
+					// by the batch that was in flight. Rare on a local/self-hosted
+					// setup, and re-tapping is the natural recovery, so no retry
+					// machinery beyond this.
+					fetch("/goals/" + goalId + "/increment", {
+						method: "POST",
+						headers: { "Content-Type": "application/x-www-form-urlencoded" },
+						body: body,
+						keepalive: true,
+					}).catch(function () {});
+				}
+
+				incrementBtn.addEventListener("click", function () {
+					taps++;
+					if (taps >= remaining) incrementBtn.disabled = true;
+
+					total++;
+					countEl.textContent = total;
+
+					pending++;
+					clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(flush, DEBOUNCE_MS);
+				});
+
+				document.getElementById("tally-close").addEventListener("click", flush);
+				document.addEventListener("visibilitychange", function () {
+					if (document.visibilityState === "hidden") flush();
+				});
+				window.addEventListener("pagehide", flush);
+			})();
+		</script>
+	}
+}

@@ -29,7 +29,7 @@ func Base(title string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"tr\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"tr\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -50,7 +50,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><script src=\"/static/js/animations.js\"></script><script src=\"/static/js/alert_dialog.js\"></script><script src=\"/static/js/list_box.js\"></script><script src=\"/static/js/select.js\"></script><script>\n\t\t\t\t// Server fires this (via HX-Trigger) only when a goal was actually\n\t\t\t\t// created, so a validation error never wipes what the user typed.\n\t\t\t\tdocument.body.addEventListener(\"goal-created\", function () {\n\t\t\t\t\tvar form = document.getElementById(\"goal-form\");\n\t\t\t\t\tif (form) form.reset();\n\t\t\t\t\tvar titleValue = document.getElementById(\"title-value\");\n\t\t\t\t\tif (titleValue) titleValue.value = \"\";\n\t\t\t\t\tresetSelectVisual(\"title-select\");\n\t\t\t\t});\n\t\t\t</script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><script src=\"/static/js/animations.js\"></script><script src=\"/static/js/alert_dialog.js\"></script><script src=\"/static/js/list_box.js\"></script><script src=\"/static/js/select.js\"></script><script src=\"/static/js/image_zoom.js\"></script><script>\n\t\t\t\t// Server fires this (via HX-Trigger) only when a goal was actually\n\t\t\t\t// created, so a validation error never wipes what the user typed.\n\t\t\t\tdocument.body.addEventListener(\"goal-created\", function () {\n\t\t\t\t\tvar form = document.getElementById(\"goal-form\");\n\t\t\t\t\tif (form) form.reset();\n\t\t\t\t\tvar titleValue = document.getElementById(\"title-value\");\n\t\t\t\t\tif (titleValue) titleValue.value = \"\";\n\t\t\t\t\tresetSelectVisual(\"title-select\");\n\t\t\t\t});\n\t\t\t</script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

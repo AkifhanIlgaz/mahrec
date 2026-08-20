@@ -7,6 +7,7 @@ import (
 	"mahrec/internal/web/ui/alertdialog"
 	"mahrec/internal/web/ui/button"
 	"mahrec/internal/web/ui/card"
+	"mahrec/internal/web/ui/icons"
 	"mahrec/internal/web/ui/progressbar"
 	"mahrec/internal/web/ui/textfield"
 )
@@ -41,6 +42,50 @@ templ confirmDialog(heading, body, confirmLabel string, confirmAttrs templ.Attri
 	}
 }
 
+// ReadingContent renders a preset's reading (models.Reading) — an image
+// scan, a multi-step phrase sequence, or plain Arabic/Turkish text — the
+// same body used by the "Okunuş" dialog and the fullscreen tally screen.
+templ ReadingContent(title string, reading models.Reading, hasReading bool) {
+	if !hasReading || reading.IsEmpty() {
+		<p class="text-muted">Bu okunuş metni henüz eklenmedi.</p>
+	} else if reading.ImagePath != "" {
+		<div data-slot="zoomable-image" class="overflow-hidden rounded-lg border border-separator touch-none select-none">
+			<img src={ reading.ImagePath } alt={ "\"" + title + "\" okunuşu" } class="w-full origin-center"/>
+		</div>
+	} else if len(reading.Steps) > 0 {
+		<div class="flex flex-col gap-5">
+			for i, step := range reading.Steps {
+				<div class="flex flex-col gap-2">
+					<div class="flex items-center gap-2">
+						<span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground">
+							{ fmt.Sprintf("%d", i+1) }
+						</span>
+						<span class="text-xs font-medium text-muted">{ fmt.Sprintf("%d defa", step.Repeat) }</span>
+					</div>
+					if step.Arabic != "" {
+						<p dir="rtl" class="whitespace-pre-line text-2xl leading-[2.6]" style="font-family: 'Amiri', serif;">{ step.Arabic }</p>
+					}
+					if step.Turkish != "" {
+						<p class="whitespace-pre-line text-sm text-muted">{ step.Turkish }</p>
+					}
+				</div>
+			}
+			if reading.Note != "" {
+				<p class="rounded-lg bg-surface-secondary p-3 text-xs text-muted">{ reading.Note }</p>
+			}
+		</div>
+	} else {
+		<div class="flex flex-col gap-4">
+			if reading.Arabic != "" {
+				<p dir="rtl" class="text-2xl leading-[2.6]" style="font-family: 'Amiri', serif;">{ reading.Arabic }</p>
+			}
+			if reading.Turkish != "" {
+				<p class="text-sm text-muted">{ reading.Turkish }</p>
+			}
+		</div>
+	}
+}
+
 // readingDialog shows a preset's Arabic text and Turkish transliteration
 // (models.Reading). Unlike confirmDialog, it has no destructive action —
 // just a close button.
@@ -56,42 +101,7 @@ templ readingDialog(title string, reading models.Reading, hasReading bool) {
 					}
 				}
 				@alertdialog.AlertDialogBody() {
-					if !hasReading || reading.IsEmpty() {
-						<p class="text-muted">Bu okunuş metni henüz eklenmedi.</p>
-					} else if reading.ImagePath != "" {
-						<img src={ reading.ImagePath } alt={ "\"" + title + "\" okunuşu" } class="w-full rounded-lg border border-separator"/>
-					} else if len(reading.Steps) > 0 {
-						<div class="flex flex-col gap-5">
-							for i, step := range reading.Steps {
-								<div class="flex flex-col gap-2">
-									<div class="flex items-center gap-2">
-										<span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground">
-											{ fmt.Sprintf("%d", i+1) }
-										</span>
-										<span class="text-xs font-medium text-muted">{ fmt.Sprintf("%d defa", step.Repeat) }</span>
-									</div>
-									if step.Arabic != "" {
-										<p dir="rtl" class="whitespace-pre-line text-2xl leading-[2.6]" style="font-family: 'Amiri', serif;">{ step.Arabic }</p>
-									}
-									if step.Turkish != "" {
-										<p class="whitespace-pre-line text-sm text-muted">{ step.Turkish }</p>
-									}
-								</div>
-							}
-							if reading.Note != "" {
-								<p class="rounded-lg bg-surface-secondary p-3 text-xs text-muted">{ reading.Note }</p>
-							}
-						</div>
-					} else {
-						<div class="flex flex-col gap-4">
-							if reading.Arabic != "" {
-								<p dir="rtl" class="text-2xl leading-[2.6]" style="font-family: 'Amiri', serif;">{ reading.Arabic }</p>
-							}
-							if reading.Turkish != "" {
-								<p class="text-sm text-muted">{ reading.Turkish }</p>
-							}
-						</div>
-					}
+					@ReadingContent(title, reading, hasReading)
 				}
 				@alertdialog.AlertDialogFooter() {
 					@button.Button(button.Props{Variant: button.VariantTertiary, Size: button.SizeSm, Attrs: templ.Attributes{"slot": "close"}}) {
@@ -144,14 +154,18 @@ templ GoalItem(g models.Goal) {
 				}
 			</div>
 			if g.IsCompleted() {
-				<span class="mt-2 text-[11px] font-medium text-success">Tamamlandı</span>
+				<span class="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5">
+					@icons.Status("goal-completed-icon", "success")
+					Tamamlandı
+				</span>
 			}
 
 			<div class="mt-5 flex items-center gap-1.5">
-				@textfield.Input(textfield.InputProps{Type: "number", Name: "amount", Value: "1", Attrs: templ.Attributes{"min": "1", "id": fmt.Sprintf("amount-%d", g.ID)}}, "w-14 text-center text-sm py-2 px-1")
+				@textfield.Input(textfield.InputProps{Type: "number", Name: "amount", Value: "1", IsDisabled: g.IsCompleted(), Attrs: templ.Attributes{"min": "1", "id": fmt.Sprintf("amount-%d", g.ID)}}, "w-14 text-center text-sm py-2 px-1")
 				@button.Button(button.Props{
-					Variant: button.VariantPrimary,
-					Size:    button.SizeSm,
+					Variant:    button.VariantPrimary,
+					Size:       button.SizeSm,
+					IsDisabled: g.IsCompleted(),
 					Attrs: templ.Attributes{
 						"aria-label": "Ekle",
 						"hx-post":    fmt.Sprintf("/goals/%d/increment", g.ID),
@@ -164,7 +178,11 @@ templ GoalItem(g models.Goal) {
 				}
 			</div>
 
-			<div class="mt-3 flex items-center gap-2">
+			<a href={ templ.SafeURL(fmt.Sprintf("/goals/%d/tally", g.ID)) } class="button button--primary button--sm mt-3 w-full font-semibold">
+				Tesbih Çek
+			</a>
+
+			<div class="mt-2 flex items-center gap-2">
 				@alertdialog.AlertDialog() {
 					@button.Button(button.Props{Variant: button.VariantOutline, Size: button.SizeSm}, "border-accent/40 text-accent") {
 						Okunuş
