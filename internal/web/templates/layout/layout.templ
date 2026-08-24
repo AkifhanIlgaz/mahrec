@@ -21,21 +21,13 @@ templ Base(title string) {
 			<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap"/>
 			<link rel="stylesheet" href="/static/css/app.css"/>
 			<script>
-				// Clears a Select's displayed value + list-box selection state; used
+				// Clears the big-button title/target pickers' selected state; used
 				// after successfully submitting the new-goal form.
-				function resetSelectVisual(rootId) {
+				function resetGoalPicker(rootId) {
 					var root = document.getElementById(rootId);
 					if (!root) return;
-					var value = root.querySelector('[data-slot="select-value"]');
-					if (value) {
-						value.setAttribute("data-placeholder", "true");
-						value.textContent = value.getAttribute("data-placeholder-text") || "";
-					}
-					root.querySelectorAll('[data-slot="list-box-item"]').forEach(function (item) {
-						item.removeAttribute("data-selected");
-						item.setAttribute("aria-selected", "false");
-						var indicator = item.querySelector('[data-slot="list-box-item-indicator"]');
-						if (indicator) indicator.removeAttribute("data-visible");
+					root.querySelectorAll("button[data-selected]").forEach(function (b) {
+						b.removeAttribute("data-selected");
 					});
 				}
 			</script>
@@ -64,7 +56,8 @@ templ Base(title string) {
 					if (form) form.reset();
 					var titleValue = document.getElementById("title-value");
 					if (titleValue) titleValue.value = "";
-					resetSelectVisual("title-select");
+					resetGoalPicker("title-picker");
+					resetGoalPicker("target-picker");
 				});
 			</script>
 		</body>

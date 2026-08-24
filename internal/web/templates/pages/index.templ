@@ -1,61 +1,68 @@
 package pages
 
 import (
+	"fmt"
+
 	"mahrec/internal/models"
 	"mahrec/internal/web/templates/components"
 	"mahrec/internal/web/templates/layout"
 	"mahrec/internal/web/ui/button"
 	"mahrec/internal/web/ui/card"
 	"mahrec/internal/web/ui/field"
-	"mahrec/internal/web/ui/listbox"
-	"mahrec/internal/web/ui/selectbox"
 	"mahrec/internal/web/ui/textfield"
 )
+
+// targetCountPresets covers the counts most readings are traditionally
+// done in (33, 100, 1000), so most users can pick a big button instead of
+// typing a number — the form below falls back to the plain number input
+// for anything else.
+var targetCountPresets = []int{33, 100, 1000}
 
 templ Index(goals []models.Goal) {
 	@layout.Base("Hedeflerim") {
 		@card.Card(card.Props{}) {
-			@card.Header() {
-				@card.Title() { Yeni Hedef }
-			}
 			@card.Content() {
-				<form id="goal-form" class="flex flex-col gap-3">
-					<div class="flex flex-col gap-1.5">
-						@field.Label(field.LabelProps{}, "text-xs") { Münâcât }
-						@selectbox.Select(selectbox.Props{FullWidth: true, Placeholder: "Seç...", IsRequired: true, Attrs: templ.Attributes{"id": "title-select"}}) {
-							@selectbox.Trigger("min-h-8 py-1.5 px-2.5 text-sm") {
-								@selectbox.Value(selectbox.ValueProps{})
-								@selectbox.Indicator()
+				<form id="goal-form" class="flex flex-col gap-5">
+					<div class="flex flex-col gap-2">
+						@field.Label(field.LabelProps{}, "text-sm") { Okumak istediğiniz münâcâtı seçiniz. }
+						<div id="title-picker" class="grid grid-cols-2 gap-2">
+							for _, preset := range models.TitlePresets {
+								<button
+									type="button"
+									class="rounded-xl border border-separator bg-surface px-3 py-3 text-left text-sm font-medium leading-snug data-[selected=true]:border-2 data-[selected=true]:border-accent data-[selected=true]:bg-accent data-[selected=true]:font-bold data-[selected=true]:text-accent-foreground data-[selected=true]:shadow-md"
+									onclick="document.querySelectorAll('#title-picker button').forEach(function(b){b.removeAttribute('data-selected')});this.setAttribute('data-selected','true');document.getElementById('title-value').value=this.textContent.trim()"
+								>
+									{ preset }
+								</button>
 							}
-							@selectbox.Popover(selectbox.PopoverProps{}) {
-								@listbox.ListBox(listbox.Props{}) {
-									for _, preset := range models.TitlePresets {
-										@listbox.Item(listbox.ItemProps{
-											ID: preset,
-											Attrs: templ.Attributes{
-												"onclick": "document.getElementById('title-value').value=this.textContent.trim()",
-											},
-										}) {
-											{ preset }
-											@listbox.ItemIndicator()
-										}
-									}
-								}
-							}
-						}
+						</div>
 						<input type="hidden" name="title" id="title-value" required/>
 					</div>
-					<div class="flex gap-3">
-						@textfield.TextField(textfield.Props{Name: "target_count", Type: "number", IsRequired: true}, "w-24") {
-							@field.Label(field.LabelProps{For: "target-input"}, "text-xs") { Adet }
-							@textfield.Input(textfield.InputProps{Placeholder: "100", Attrs: templ.Attributes{"id": "target-input", "min": "1"}}, "text-sm py-1.5 px-2.5")
-						}
-						@textfield.TextField(textfield.Props{FullWidth: true, Name: "description"}, "flex-1") {
-							@field.Label(field.LabelProps{For: "description-input"}, "text-xs") { Açıklama }
-							@textfield.Input(textfield.InputProps{Placeholder: "Farklı bir şey mi? Buraya yaz", FullWidth: true, Attrs: templ.Attributes{"id": "description-input"}}, "text-sm py-1.5 px-2.5")
-						}
+
+					<div class="flex flex-col gap-2">
+						@field.Label(field.LabelProps{For: "target-input"}, "text-sm") { Kaç adet okuyacaksınız? }
+						<div id="target-picker" class="flex gap-2">
+							for _, n := range targetCountPresets {
+								<button
+									type="button"
+									class="flex-1 rounded-xl border border-separator bg-surface py-3 text-lg font-bold tabular-nums data-[selected=true]:border-2 data-[selected=true]:border-accent data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[selected=true]:shadow-md"
+									onclick="document.querySelectorAll('#target-picker button').forEach(function(b){b.removeAttribute('data-selected')});this.setAttribute('data-selected','true');document.getElementById('target-input').value=this.textContent.trim()"
+								>
+									{ fmt.Sprintf("%d", n) }
+								</button>
+							}
+						</div>
+						@textfield.Input(textfield.InputProps{Type: "number", Name: "target_count", IsRequired: true, Attrs: templ.Attributes{"id": "target-input", "min": "1", "placeholder": "Lütfen okumak istediğiniz adedi yazın"}}, "py-3 text-center text-lg")
 					</div>
-					@button.Button(button.Props{Variant: button.VariantPrimary, Size: button.SizeSm, FullWidth: true, Attrs: templ.Attributes{
+
+					<details class="text-sm">
+						<summary class="cursor-pointer select-none text-muted">Not ekle</summary>
+						<div class="mt-2">
+							@textfield.Input(textfield.InputProps{Name: "description", Placeholder: "Bu hedefle ilgili bir not yazın (isteğe bağlı)", FullWidth: true, Attrs: templ.Attributes{"id": "description-input"}}, "px-2.5 py-2 text-sm")
+						</div>
+					</details>
+
+					@button.Button(button.Props{Variant: button.VariantPrimary, Size: button.SizeLg, FullWidth: true, Attrs: templ.Attributes{
 						"hx-post":   "/goals",
 						"hx-target": "#goal-list",
 						"hx-swap":   "afterbegin",
@@ -63,7 +70,6 @@ templ Index(goals []models.Goal) {
 						Ekle
 					}
 					@components.FormError("")
-
 				</form>
 			}
 		}
