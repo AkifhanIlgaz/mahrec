@@ -7,6 +7,13 @@ templ Base(title string) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 			<title>{ title } · Mahrec</title>
+			<link rel="manifest" href="/static/manifest.json"/>
+			<link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32"/>
+			<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png"/>
+			<meta name="theme-color" content="#002357"/>
+			<meta name="apple-mobile-web-app-capable" content="yes"/>
+			<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+			<meta name="apple-mobile-web-app-title" content="Mahrec"/>
 			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 			<script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"></script>
 			<link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -47,6 +54,8 @@ templ Base(title string) {
 			<script src="/static/js/list_box.js"></script>
 			<script src="/static/js/select.js"></script>
 			<script src="/static/js/image_zoom.js"></script>
+			<script src="/static/js/dropdown.js"></script>
+			<script src="/static/js/goal_menu.js"></script>
 			<script>
 				// Server fires this (via HX-Trigger) only when a goal was actually
 				// created, so a validation error never wipes what the user typed.

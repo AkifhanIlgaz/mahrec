@@ -2,15 +2,22 @@ package components
 
 import (
 	"fmt"
+	"math"
 
 	"mahrec/internal/models"
 	"mahrec/internal/web/ui/alertdialog"
 	"mahrec/internal/web/ui/button"
 	"mahrec/internal/web/ui/card"
+	"mahrec/internal/web/ui/dropdown"
+	"mahrec/internal/web/ui/field"
 	"mahrec/internal/web/ui/icons"
-	"mahrec/internal/web/ui/progressbar"
 	"mahrec/internal/web/ui/textfield"
 )
+
+// ringCircumference matches the r=54 circle used by both the goal card ring
+// and the tally screen's ring (internal/web/templates/pages/tally.templ), so
+// the two share the same geometry/stroke feel.
+const ringCircumference = 2 * math.Pi * 54
 
 // confirmDialog renders the backdrop/dialog markup shared by the delete and
 // reset confirmations; the caller supplies the confirm button's own action
@@ -39,6 +46,25 @@ templ confirmDialog(heading, body, confirmLabel string, confirmAttrs templ.Attri
 				}
 			}
 		}
+	}
+}
+
+// quickAddButton renders a "+N" shortcut that posts straight to the
+// increment endpoint with a fixed amount, bypassing the amount input.
+templ quickAddButton(g models.Goal, cardID string, amount int) {
+	@button.Button(button.Props{
+		Variant:    button.VariantOutline,
+		Size:       button.SizeSm,
+		IsDisabled: g.IsCompleted(),
+		Attrs: templ.Attributes{
+			"aria-label": fmt.Sprintf("%d ekle", amount),
+			"hx-post":    fmt.Sprintf("/goals/%d/increment", g.ID),
+			"hx-target":  "#" + cardID,
+			"hx-swap":    "morph:outerHTML",
+			"hx-vals":    fmt.Sprintf(`{"amount":"%d"}`, amount),
+		},
+	}, "text-xs font-semibold px-2") {
+		{ fmt.Sprintf("+%d", amount) }
 	}
 }
 
@@ -116,16 +142,22 @@ templ readingDialog(title string, reading models.Reading, hasReading bool) {
 // GoalItem's layout follows the "2a — centered vertical" card from the
 // İstiğfar Kartı design (claude.ai/design), reskinned with this app's own
 // theme tokens instead of the mockup's hardcoded colors: centered title +
-// description, a large count, a thin progress bar, an amount+add row, and a
-// bottom Okunuş/Sil/Sıfırla row. The underlying add/reset/delete logic is
-// unchanged from before — no decrement was added.
+// description, a large count, a circular progress ring, a −/amount/+ row
+// (plus +10/+100 shortcuts), and a bottom Okunuş/Tesbih Çek/⋮ row.
 templ GoalItem(g models.Goal) {
 	{{ id := fmt.Sprintf("goal-%d", g.ID) }}
+	{{ deleteTriggerID := id + "-delete-trigger" }}
+	{{ resetTriggerID := id + "-reset-trigger" }}
 	{{ countColor := "text-accent" }}
 	{{ if g.IsCompleted() {
 		countColor = "text-success"
 	} }}
 	{{ reading, hasReading := models.ReadingFor(g.Title) }}
+	{{ ringPct := 0.0 }}
+	{{ if g.TargetCount > 0 {
+		ringPct = math.Min(float64(g.CurrentCount)/float64(g.TargetCount), 1)
+	} }}
+	{{ ringOffset := ringCircumference * (1 - ringPct) }}
 	@card.Card(card.Props{Variant: card.VariantSecondary, Attrs: templ.Attributes{"id": id}}, "rounded-[22px] border-0 shadow-md p-6") {
 		@card.Content("flex flex-col items-center gap-0 text-center") {
 			<span class="text-base font-bold">{ g.Title }</span>
@@ -133,25 +165,26 @@ templ GoalItem(g models.Goal) {
 				<p class="m-0 mt-1.5 text-xs leading-relaxed text-muted">{ g.Description }</p>
 			}
 
-			<span data-slot="goal-count" class={ "mt-5 text-6xl leading-none font-extrabold tabular-nums", countColor }>
-				{ fmt.Sprintf("%d", g.CurrentCount) }
-			</span>
-			<span class="mt-1 text-xs text-muted">{ fmt.Sprintf("/ %d", g.TargetCount) }</span>
-
-			<div class="mt-4 w-full">
-				if g.IsCompleted() {
-					@progressbar.ProgressBar(progressbar.Props{Value: float64(g.CurrentCount), MaxValue: float64(g.TargetCount), Color: progressbar.ColorSuccess, Size: progressbar.SizeSm}) {
-						@progressbar.Track() {
-							@progressbar.Fill("transition-[width] duration-500 ease-out")
-						}
-					}
-				} else {
-					@progressbar.ProgressBar(progressbar.Props{Value: float64(g.CurrentCount), MaxValue: float64(g.TargetCount), Color: progressbar.ColorAccent, Size: progressbar.SizeSm}) {
-						@progressbar.Track() {
-							@progressbar.Fill("transition-[width] duration-500 ease-out")
-						}
-					}
-				}
+			<div class="relative mt-5 flex size-36 shrink-0 items-center justify-center rounded-full">
+				<svg viewBox="0 0 120 120" class="size-36 -rotate-90">
+					<circle cx="60" cy="60" r="54" stroke-width="8" fill="none" class="stroke-separator"></circle>
+					<circle
+						cx="60"
+						cy="60"
+						r="54"
+						stroke-width="8"
+						stroke-linecap="round"
+						fill="none"
+						style={ fmt.Sprintf("stroke-dasharray: %.4f; stroke-dashoffset: %.4f", ringCircumference, ringOffset) }
+						class={ "transition-[stroke-dashoffset] duration-500 ease-out", templ.KV("stroke-success", g.IsCompleted()), templ.KV("stroke-accent", !g.IsCompleted()) }
+					></circle>
+				</svg>
+				<div class="absolute inset-0 flex flex-col items-center justify-center">
+					<span data-slot="goal-count" class={ "text-4xl leading-none font-extrabold tabular-nums", countColor }>
+						{ fmt.Sprintf("%d", g.CurrentCount) }
+					</span>
+					<span class="mt-1 text-xs text-muted">{ fmt.Sprintf("/ %d", g.TargetCount) }</span>
+				</div>
 			</div>
 			if g.IsCompleted() {
 				<span class="mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5">
@@ -160,39 +193,78 @@ templ GoalItem(g models.Goal) {
 				</span>
 			}
 
-			<div class="mt-5 flex items-center gap-1.5">
-				@textfield.Input(textfield.InputProps{Type: "number", Name: "amount", Value: "1", IsDisabled: g.IsCompleted(), Attrs: templ.Attributes{"min": "1", "id": fmt.Sprintf("amount-%d", g.ID)}}, "w-14 text-center text-sm py-2 px-1")
-				@button.Button(button.Props{
-					Variant:    button.VariantPrimary,
-					Size:       button.SizeSm,
-					IsDisabled: g.IsCompleted(),
-					Attrs: templ.Attributes{
-						"aria-label": "Ekle",
-						"hx-post":    fmt.Sprintf("/goals/%d/increment", g.ID),
-						"hx-target":  "#" + id,
-						"hx-swap":    "morph:outerHTML",
-						"hx-include": fmt.Sprintf("#amount-%d", g.ID),
-					},
-				}, "text-lg font-bold leading-none") {
-					+
-				}
+			<div class="mt-5 flex flex-col items-center gap-1.5">
+				<div class="flex items-center gap-1.5">
+					@button.Button(button.Props{
+						Variant:    button.VariantOutline,
+						Size:       button.SizeSm,
+						IsDisabled: g.CurrentCount == 0,
+						Attrs: templ.Attributes{
+							"aria-label": "Çıkar",
+							"hx-post":    fmt.Sprintf("/goals/%d/decrement", g.ID),
+							"hx-target":  "#" + id,
+							"hx-swap":    "morph:outerHTML",
+							"hx-include": fmt.Sprintf("#amount-%d", g.ID),
+						},
+					}, "text-lg font-bold leading-none text-muted") {
+						−
+					}
+					@textfield.Input(textfield.InputProps{Type: "number", Name: "amount", Value: "1", Attrs: templ.Attributes{"min": "1", "id": fmt.Sprintf("amount-%d", g.ID)}}, "w-11 text-center text-xs py-1.5 px-1")
+					@button.Button(button.Props{
+						Variant:    button.VariantPrimary,
+						Size:       button.SizeSm,
+						IsDisabled: g.IsCompleted(),
+						Attrs: templ.Attributes{
+							"aria-label": "Ekle",
+							"hx-post":    fmt.Sprintf("/goals/%d/increment", g.ID),
+							"hx-target":  "#" + id,
+							"hx-swap":    "morph:outerHTML",
+							"hx-include": fmt.Sprintf("#amount-%d", g.ID),
+						},
+					}, "text-lg font-bold leading-none") {
+						+
+					}
+				</div>
+				<div class="flex items-center gap-1.5">
+					@quickAddButton(g, id, 10)
+					@quickAddButton(g, id, 100)
+				</div>
 			</div>
 
-			<a href={ templ.SafeURL(fmt.Sprintf("/goals/%d/tally", g.ID)) } class="button button--primary button--sm mt-3 w-full font-semibold">
-				Tesbih Çek
-			</a>
-
-			<div class="mt-2 flex items-center gap-2">
+			<div class="mt-3 flex w-full items-center gap-2">
 				@alertdialog.AlertDialog() {
-					@button.Button(button.Props{Variant: button.VariantOutline, Size: button.SizeSm}, "border-accent/40 text-accent") {
+					@button.Button(button.Props{Variant: button.VariantOutline, Size: button.SizeSm}, "flex-1 border-accent/40 text-accent") {
 						Okunuş
 					}
 					@readingDialog(g.Title, reading, hasReading)
 				}
-				@alertdialog.AlertDialog() {
-					@button.Button(button.Props{Variant: button.VariantOutline, Size: button.SizeSm}, "border-danger/40 text-danger") {
-						Sil
+				<a href={ templ.SafeURL(fmt.Sprintf("/goals/%d/tally", g.ID)) } class="button button--primary button--sm flex-1 font-semibold">
+					Tesbih Çek
+				</a>
+				@dropdown.Dropdown(dropdown.Props{}, "shrink-0") {
+					<button type="button" aria-label="Diğer işlemler" class="flex size-9 items-center justify-center rounded-full border border-separator text-muted">
+						@icons.MoreVertical("size-4")
+					</button>
+					@dropdown.Popover("w-36") {
+						@dropdown.Menu(dropdown.MenuProps{}) {
+							@dropdown.Item(dropdown.ItemProps{ID: "delete", Variant: dropdown.VariantDanger, Attrs: templ.Attributes{"data-open-dialog": deleteTriggerID}}) {
+								@field.Label(field.LabelProps{}) {
+									Sil
+								}
+							}
+							@dropdown.Item(dropdown.ItemProps{ID: "reset", Attrs: templ.Attributes{"data-open-dialog": resetTriggerID}}) {
+								@field.Label(field.LabelProps{}) {
+									Sıfırla
+								}
+							}
+						}
 					}
+				}
+				// Sil/Sıfırla's confirmation dialogs live outside the dropdown's
+				// popover (see goal_menu.js for why) and are opened by forwarding a
+				// click to these otherwise-invisible AlertDialog triggers.
+				@alertdialog.AlertDialog() {
+					<button type="button" id={ deleteTriggerID } class="hidden"></button>
 					@confirmDialog(
 						"Hedefi silmek istediğine emin misin?",
 						fmt.Sprintf("\"%s\" hedefi ve ilerlemesi kalıcı olarak silinecek. Bu işlem geri alınamaz.", g.Title),
@@ -205,9 +277,7 @@ templ GoalItem(g models.Goal) {
 					)
 				}
 				@alertdialog.AlertDialog() {
-					@button.Button(button.Props{Variant: button.VariantOutline, Size: button.SizeSm}) {
-						Sıfırla
-					}
+					<button type="button" id={ resetTriggerID } class="hidden"></button>
 					@confirmDialog(
 						"Bu hedefi sıfırlamak istediğine emin misin?",
 						fmt.Sprintf("\"%s\" hedefindeki ilerleme (%d / %d) sıfırlanacak.", g.Title, g.CurrentCount, g.TargetCount),

@@ -78,6 +78,25 @@ func (s *GoalStore) Increment(clientID string, id int64, by int) (models.Goal, e
 	return s.Get(clientID, id)
 }
 
+// Decrement undoes an accidental Increment: it clamps at 0 and, if the
+// goal was already completed, clears completed_at once the count drops
+// back under the target.
+func (s *GoalStore) Decrement(clientID string, id int64, by int) (models.Goal, error) {
+	_, err := s.db.Exec(`
+		UPDATE goals
+		SET current_count = MAX(current_count - ?, 0),
+		    completed_at = CASE
+		        WHEN current_count - ? < target_count THEN NULL
+		        ELSE completed_at
+		    END
+		WHERE id = ? AND client_id = ?
+	`, by, by, id, clientID)
+	if err != nil {
+		return models.Goal{}, err
+	}
+	return s.Get(clientID, id)
+}
+
 func (s *GoalStore) Reset(clientID string, id int64) (models.Goal, error) {
 	_, err := s.db.Exec(`
 		UPDATE goals

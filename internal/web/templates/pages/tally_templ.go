@@ -14,19 +14,20 @@ import (
 	"mahrec/internal/models"
 	"mahrec/internal/web/templates/components"
 	"mahrec/internal/web/templates/layout"
-	"mahrec/internal/web/ui/button"
 	"mahrec/internal/web/ui/icons"
 )
 
 // Tally is the fullscreen "tesbih çekme" screen: the reading to recite,
-// centered above a live +1 counter. Taps are batched — debounced ~700ms of
-// idle, or flushed immediately when the screen is closed/backgrounded —
-// into a single Increment request for this same goal (the one the user
-// opened the screen from — no picker, since they already knew what they
-// were reading), rather than one request per tap. There's nothing ever
-// left meaningfully unsaved (the debounce window is short and flushed on
-// every way of leaving the screen), so Kapat is a plain "go home" link.
-func Tally(goal models.Goal, reading models.Reading, hasReading bool) templ.Component {
+// centered above a live circular-progress counter. Tapping the ring taps
+// off a +1. Taps are batched — debounced ~700ms of idle, or flushed
+// immediately when the screen is closed/backgrounded — into a single
+// Increment request for this same goal (the one the user opened the
+// screen from — no picker, since they already knew what they were
+// reading), rather than one request per tap. There's nothing ever left
+// meaningfully unsaved (the debounce window is short and flushed on
+// every way of leaving the screen), so the back button is a plain "go
+// home" link.
+func tallyCompletedBadge() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -47,7 +48,44 @@ func Tally(goal models.Goal, reading models.Reading, hasReading bool) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<span data-slot=\"tally-completed-badge\" class=\"inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = icons.Status("tally-completed-icon", "success").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Tamamlandı</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func Tally(goal models.Goal, reading models.Reading, hasReading bool) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -59,130 +97,252 @@ func Tally(goal models.Goal, reading models.Reading, hasReading bool) templ.Comp
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-slot=\"tally-screen\" data-goal-id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.ID))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 25, Col: 44}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" data-remaining=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div data-slot=\"tally-screen\" data-goal-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.TargetCount-goal.CurrentCount))
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 26, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 33, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" data-current=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-remaining=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.CurrentCount))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.TargetCount-goal.CurrentCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 27, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 34, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"fixed inset-0 z-40 flex flex-col bg-background\"><div class=\"flex flex-1 flex-col items-center overflow-y-auto p-6\"><div class=\"m-auto flex w-full max-w-xl flex-col items-center gap-4 text-center\"><h1 class=\"text-lg font-bold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" data-current=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(goal.Title)
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.CurrentCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 32, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 35, Col: 54}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h1>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if goal.IsCompleted() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span data-slot=\"tally-completed-badge\" class=\"-mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = icons.Status("tally-completed-icon", "success").Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Tamamlandı</span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = components.ReadingContent(goal.Title, reading, hasReading).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" data-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"border-t border-separator p-4\"><div class=\"mx-auto flex w-full max-w-xl flex-col items-center gap-3\"><div class=\"flex w-full items-center gap-4\">")
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", goal.TargetCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 36, Col: 52}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var7 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-				if !templ_7745c5c3_IsBuffer {
-					defer func() {
-						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-						if templ_7745c5c3_Err == nil {
-							templ_7745c5c3_Err = templ_7745c5c3_BufErr
-						}
-					}()
-				}
-				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "+1")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				return nil
-			})
-			templ_7745c5c3_Err = button.Button(button.Props{
-				Variant:   button.VariantPrimary,
-				FullWidth: true,
-				Attrs:     templ.Attributes{"id": "tally-increment"},
-			}, "flex-1 py-7 text-3xl font-bold leading-none").Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" class=\"fixed inset-0 z-40 flex flex-col bg-background\"><div class=\"flex items-center gap-3 p-4\"><a href=\"/\" id=\"tally-close\" aria-label=\"Geri\" class=\"button button--outline button--sm button--icon-only shrink-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span data-slot=\"tally-count\" class=\"w-16 shrink-0 text-right text-6xl leading-none font-extrabold tabular-nums text-accent\">")
+			templ_7745c5c3_Err = icons.ArrowLeft("size-4").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</a><h1 class=\"text-lg font-bold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", goal.CurrentCount))
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(goal.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 53, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 43, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></div><a href=\"/\" id=\"tally-close\" class=\"button button--outline button--sm w-full\">Kapat</a></div></div></div><script>\n\t\t\t(function () {\n\t\t\t\tvar DEBOUNCE_MS = 4000;\n\n\t\t\t\tvar taps = 0;\n\t\t\t\tvar pending = 0; // tapped but not yet sent to the server\n\t\t\t\tvar debounceTimer = null;\n\t\t\t\tvar screen = document.querySelector('[data-slot=\"tally-screen\"]');\n\t\t\t\tvar goalId = screen.getAttribute(\"data-goal-id\");\n\t\t\t\tvar remaining = parseInt(screen.getAttribute(\"data-remaining\"), 10) || 0;\n\t\t\t\tvar total = parseInt(screen.getAttribute(\"data-current\"), 10) || 0;\n\t\t\t\tvar countEl = document.querySelector('[data-slot=\"tally-count\"]');\n\t\t\t\tvar incrementBtn = document.getElementById(\"tally-increment\");\n\n\t\t\t\tif (remaining <= 0) incrementBtn.disabled = true;\n\n\t\t\t\tfunction flush() {\n\t\t\t\t\tif (pending <= 0) return;\n\t\t\t\t\tvar amount = pending;\n\t\t\t\t\tpending = 0;\n\t\t\t\t\tclearTimeout(debounceTimer);\n\n\t\t\t\t\tvar body = \"amount=\" + amount;\n\t\t\t\t\tif (navigator.sendBeacon) {\n\t\t\t\t\t\tnavigator.sendBeacon(\n\t\t\t\t\t\t\t\"/goals/\" + goalId + \"/increment\",\n\t\t\t\t\t\t\tnew Blob([body], { type: \"application/x-www-form-urlencoded\" })\n\t\t\t\t\t\t);\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\t// Best-effort fallback: a dropped request under-counts the goal\n\t\t\t\t\t// by the batch that was in flight. Rare on a local/self-hosted\n\t\t\t\t\t// setup, and re-tapping is the natural recovery, so no retry\n\t\t\t\t\t// machinery beyond this.\n\t\t\t\t\tfetch(\"/goals/\" + goalId + \"/increment\", {\n\t\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\t\theaders: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n\t\t\t\t\t\tbody: body,\n\t\t\t\t\t\tkeepalive: true,\n\t\t\t\t\t}).catch(function () {});\n\t\t\t\t}\n\n\t\t\t\tincrementBtn.addEventListener(\"click\", function () {\n\t\t\t\t\ttaps++;\n\t\t\t\t\tif (taps >= remaining) incrementBtn.disabled = true;\n\n\t\t\t\t\ttotal++;\n\t\t\t\t\tcountEl.textContent = total;\n\n\t\t\t\t\tpending++;\n\t\t\t\t\tclearTimeout(debounceTimer);\n\t\t\t\t\tdebounceTimer = setTimeout(flush, DEBOUNCE_MS);\n\t\t\t\t});\n\n\t\t\t\tdocument.getElementById(\"tally-close\").addEventListener(\"click\", flush);\n\t\t\t\tdocument.addEventListener(\"visibilitychange\", function () {\n\t\t\t\t\tif (document.visibilityState === \"hidden\") flush();\n\t\t\t\t});\n\t\t\t\twindow.addEventListener(\"pagehide\", flush);\n\t\t\t})();\n\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h1></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if hasReading && !reading.IsEmpty() && reading.ImagePath != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex min-h-0 flex-1 flex-col items-center gap-3 px-4 pb-4\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if goal.IsCompleted() {
+					templ_7745c5c3_Err = tallyCompletedBadge().Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flex min-h-0 w-full max-w-xl flex-1 items-center justify-center [&_[data-slot=zoomable-image]]:flex [&_[data-slot=zoomable-image]]:h-full [&_[data-slot=zoomable-image]]:w-full [&_[data-slot=zoomable-image]]:items-center [&_[data-slot=zoomable-image]]:justify-center [&_[data-slot=zoomable-image]_img]:h-full [&_[data-slot=zoomable-image]_img]:w-auto [&_[data-slot=zoomable-image]_img]:max-w-full [&_[data-slot=zoomable-image]_img]:object-contain\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = components.ReadingContent(goal.Title, reading, hasReading).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"flex flex-1 flex-col items-center overflow-y-auto px-6 pb-6\"><div class=\"m-auto flex w-full max-w-xl flex-col items-center gap-4 text-center\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if goal.IsCompleted() {
+					templ_7745c5c3_Err = tallyCompletedBadge().Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = components.ReadingContent(goal.Title, reading, hasReading).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"border-t border-separator p-6\"><div class=\"mx-auto flex w-full max-w-xl flex-col items-center gap-3\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 = []any{"text-4xl leading-none font-extrabold tabular-nums", templ.KV("text-success", goal.IsCompleted()), templ.KV("text-accent", !goal.IsCompleted())}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span id=\"tally-count\" data-slot=\"tally-count\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var10 string
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var9).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var11 string
+			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", goal.CurrentCount))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 71, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> <button type=\"button\" id=\"tally-increment\" aria-label=\"Bir okuma ekle\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if goal.IsCompleted() {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " disabled")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " class=\"relative flex size-28 shrink-0 items-center justify-center rounded-full\"><svg viewBox=\"0 0 120 120\" class=\"size-28 -rotate-90\"><circle cx=\"60\" cy=\"60\" r=\"54\" stroke-width=\"6\" fill=\"none\" class=\"stroke-separator\"></circle> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var12 = []any{"transition-[stroke-dashoffset] duration-200 ease-out", templ.KV("stroke-success", goal.IsCompleted()), templ.KV("stroke-accent", !goal.IsCompleted())}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<circle id=\"tally-ring-progress\" cx=\"60\" cy=\"60\" r=\"54\" stroke-width=\"6\" stroke-linecap=\"round\" fill=\"none\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var13 string
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var12).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"></circle></svg> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 = []any{"absolute inset-0 items-center justify-center text-success [&>svg]:size-9", templ.KV("flex", goal.IsCompleted()), templ.KV("hidden", !goal.IsCompleted())}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var14...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span id=\"tally-ring-check\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var14).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = icons.Check("size-9").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></button>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 = []any{"text-xs text-muted", templ.KV("hidden", goal.IsCompleted())}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var16...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<p id=\"tally-hint\" class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var17 string
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var16).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pages/tally.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\">Artırmak için halkaya dokun</p></div></div></div><script>\n\t\t\t(function () {\n\t\t\t\tvar DEBOUNCE_MS = 1000;\n\t\t\t\tvar CIRCUMFERENCE = 2 * Math.PI * 54;\n\n\t\t\t\tvar taps = 0;\n\t\t\t\tvar pending = 0; // tapped but not yet sent to the server\n\t\t\t\tvar debounceTimer = null;\n\t\t\t\tvar screen = document.querySelector('[data-slot=\"tally-screen\"]');\n\t\t\t\tvar goalId = screen.getAttribute(\"data-goal-id\");\n\t\t\t\tvar remaining = parseInt(screen.getAttribute(\"data-remaining\"), 10) || 0;\n\t\t\t\tvar total = parseInt(screen.getAttribute(\"data-current\"), 10) || 0;\n\t\t\t\tvar target = parseInt(screen.getAttribute(\"data-target\"), 10) || 0;\n\t\t\t\tvar countEl = document.querySelector('[data-slot=\"tally-count\"]');\n\t\t\t\tvar incrementBtn = document.getElementById(\"tally-increment\");\n\t\t\t\tvar progressRing = document.getElementById(\"tally-ring-progress\");\n\t\t\t\tvar checkEl = document.getElementById(\"tally-ring-check\");\n\t\t\t\tvar hintEl = document.getElementById(\"tally-hint\");\n\n\t\t\t\tprogressRing.style.strokeDasharray = CIRCUMFERENCE;\n\n\t\t\t\tfunction renderProgress() {\n\t\t\t\t\tvar pct = target > 0 ? Math.min(total / target, 1) : 0;\n\t\t\t\t\tprogressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);\n\t\t\t\t}\n\n\t\t\t\tfunction markCompleted() {\n\t\t\t\t\tincrementBtn.disabled = true;\n\t\t\t\t\tcountEl.classList.remove(\"text-accent\");\n\t\t\t\t\tcountEl.classList.add(\"text-success\");\n\t\t\t\t\tprogressRing.classList.remove(\"stroke-accent\");\n\t\t\t\t\tprogressRing.classList.add(\"stroke-success\");\n\t\t\t\t\tcheckEl.classList.remove(\"hidden\");\n\t\t\t\t\tcheckEl.classList.add(\"flex\");\n\t\t\t\t\thintEl.classList.add(\"hidden\");\n\t\t\t\t}\n\n\t\t\t\trenderProgress();\n\t\t\t\tif (remaining <= 0) markCompleted();\n\n\t\t\t\tfunction flush() {\n\t\t\t\t\tif (pending <= 0) return;\n\t\t\t\t\tvar amount = pending;\n\t\t\t\t\tpending = 0;\n\t\t\t\t\tclearTimeout(debounceTimer);\n\n\t\t\t\t\tvar body = \"amount=\" + amount;\n\t\t\t\t\tif (navigator.sendBeacon) {\n\t\t\t\t\t\tnavigator.sendBeacon(\n\t\t\t\t\t\t\t\"/goals/\" + goalId + \"/increment\",\n\t\t\t\t\t\t\tnew Blob([body], { type: \"application/x-www-form-urlencoded\" })\n\t\t\t\t\t\t);\n\t\t\t\t\t\treturn;\n\t\t\t\t\t}\n\t\t\t\t\t// Best-effort fallback: a dropped request under-counts the goal\n\t\t\t\t\t// by the batch that was in flight. Rare on a local/self-hosted\n\t\t\t\t\t// setup, and re-tapping is the natural recovery, so no retry\n\t\t\t\t\t// machinery beyond this.\n\t\t\t\t\tfetch(\"/goals/\" + goalId + \"/increment\", {\n\t\t\t\t\t\tmethod: \"POST\",\n\t\t\t\t\t\theaders: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n\t\t\t\t\t\tbody: body,\n\t\t\t\t\t\tkeepalive: true,\n\t\t\t\t\t}).catch(function () {});\n\t\t\t\t}\n\n\t\t\t\tincrementBtn.addEventListener(\"click\", function () {\n\t\t\t\t\ttaps++;\n\n\t\t\t\t\ttotal++;\n\t\t\t\t\tcountEl.textContent = total;\n\t\t\t\t\trenderProgress();\n\n\t\t\t\t\tif (taps >= remaining) {\n\t\t\t\t\t\tmarkCompleted();\n\t\t\t\t\t\tif (navigator.vibrate) navigator.vibrate([15, 60, 15, 60, 30]);\n\t\t\t\t\t} else if (navigator.vibrate) {\n\t\t\t\t\t\tnavigator.vibrate(10);\n\t\t\t\t\t}\n\n\t\t\t\t\tpending++;\n\t\t\t\t\tclearTimeout(debounceTimer);\n\t\t\t\t\tdebounceTimer = setTimeout(flush, DEBOUNCE_MS);\n\t\t\t\t});\n\n\t\t\t\tdocument.getElementById(\"tally-close\").addEventListener(\"click\", flush);\n\t\t\t\tdocument.addEventListener(\"visibilitychange\", function () {\n\t\t\t\t\tif (document.visibilityState === \"hidden\") flush();\n\t\t\t\t});\n\t\t\t\twindow.addEventListener(\"pagehide\", flush);\n\t\t\t})();\n\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base(goal.Title+" · Tesbih").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base(goal.Title+" · Tesbih").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

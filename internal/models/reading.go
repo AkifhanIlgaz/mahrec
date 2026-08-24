@@ -34,6 +34,8 @@ var TitlePresets = []string{
 	"Salât-ı Münciye",
 	"Salât-ı Fethiyye",
 	"Salât-ı Nâriye",
+	"Salavât-ı Şerife",
+	"Kelime-i Tevhid",
 	"İstiğfar-ı Şerif",
 	"Havkale (Lâ Havle)",
 	"Cünnetü'l-Esmâ",
@@ -49,6 +51,14 @@ var titleReadings = map[string]Reading{
 	"Havkale (Lâ Havle)": {
 		Arabic:  "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ",
 		Turkish: "Lâ havle velâ kuvvete illâ billâhil aliyyil azîm.",
+	},
+	"Salavât-ı Şerife": {
+		Arabic:  "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ وَعَلَى آلِ سَيِّدِنَا مُحَمَّدٍ",
+		Turkish: "Allâhümme salli alâ seyyidinâ Muhammedin ve alâ âli seyyidinâ Muhammed.",
+	},
+	"Kelime-i Tevhid": {
+		Arabic:  "لَا إِلَٰهَ إِلَّا اللَّهُ مُحَمَّدٌ رَسُولُ اللَّهِ",
+		Turkish: "Lâ ilâhe illallah, Muhammedün Rasûlullah.",
 	},
 	"Cünnetü'l-Esmâ": {
 		Steps: []ReadingStep{

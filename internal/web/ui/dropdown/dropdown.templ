@@ -1,0 +1,174 @@
+// Package dropdown is vendored from workspace/heroui-go
+// (components/dropdown/dropdown.templ), trimmed to what this project uses
+// (menu-only: no Section/selection-mode markup beyond what the goal card's
+// Sil/Sıfırla menu needs, kept anyway since it's part of the same file).
+package dropdown
+
+import (
+	"context"
+
+	"mahrec/internal/web/ui/utils"
+)
+
+// Trigger'a bağlı menü popover'ı.
+//
+//	@Dropdown(Props{}) {
+//		<button>Actions</button>
+//		@Popover() {
+//			@Menu(MenuProps{}) {
+//				@Item(ItemProps{ID: "new-file"}) {
+//					New file
+//				}
+//			}
+//		}
+//	}
+//
+// Trigger, root'un popover dışındaki ilk buton çocuğudur. Açma/kapama,
+// konumlandırma ve seçim static/js/dropdown.js'te (alert_dialog.js'teki
+// afterAnimations'ı kullanır; script sırası layout.templ'de buna göre
+// dizilidir — alert_dialog.js dropdown.js'ten ÖNCE yüklenmelidir).
+type dropdownCtxKey int
+
+const dropdownMenuKey dropdownCtxKey = iota
+
+type MenuProps struct {
+	SelectionMode SelectionMode // default: none
+	Attrs         templ.Attributes
+}
+
+type SelectionMode string
+
+const (
+	SelectionModeNone     SelectionMode = "none"
+	SelectionModeSingle   SelectionMode = "single"
+	SelectionModeMultiple SelectionMode = "multiple"
+)
+
+func (m SelectionMode) String() string {
+	if m == "" {
+		return string(SelectionModeNone)
+	}
+	return string(m)
+}
+
+type Variant string
+
+const (
+	VariantDefault Variant = "default"
+	VariantDanger  Variant = "danger"
+)
+
+func (v Variant) String() string {
+	if v == "" {
+		return string(VariantDefault)
+	}
+	return string(v)
+}
+
+type ItemProps struct {
+	// ID, item key karşılığı; data-id olarak basılır.
+	ID              string
+	Variant         Variant // menu-item--default | menu-item--danger
+	DefaultSelected bool
+	IsDisabled      bool
+	Attrs           templ.Attributes
+}
+
+type dropdownItemCtx struct {
+	menu MenuProps
+	item ItemProps
+}
+
+func dropdownItem(ctx context.Context) dropdownItemCtx {
+	if c, ok := ctx.Value(dropdownMenuKey).(dropdownItemCtx); ok {
+		return c
+	}
+	return dropdownItemCtx{}
+}
+
+type Props struct {
+	Attrs templ.Attributes
+}
+
+templ Dropdown(p Props, tw ...string) {
+	<div
+		class={ utils.Cn("dropdown", tw) }
+		data-slot="dropdown"
+		{ p.Attrs... }
+	>
+		{ children... }
+	</div>
+}
+
+templ Popover(tw ...string) {
+	<div
+		class={ utils.Cn("dropdown__popover", tw) }
+		data-slot="dropdown-popover"
+		data-placement="bottom"
+		hidden
+	>
+		{ children... }
+	</div>
+}
+
+templ Menu(p MenuProps, tw ...string) {
+	{{ ctx = context.WithValue(ctx, dropdownMenuKey, dropdownItemCtx{menu: p}) }}
+	<div
+		class={ utils.Cn("dropdown__menu", tw) }
+		data-slot="dropdown-menu"
+		role="menu"
+		data-selection-mode={ p.SelectionMode.String() }
+		{ p.Attrs... }
+	>
+		{ children... }
+	</div>
+}
+
+templ Item(p ItemProps, tw ...string) {
+	{{
+	c := dropdownItem(ctx)
+	c.item = p
+	if p.Variant == "" {
+		p.Variant = VariantDefault
+	}
+	ctx = context.WithValue(ctx, dropdownMenuKey, c)
+	role := "menuitem"
+	switch c.menu.SelectionMode {
+	case SelectionModeSingle:
+		role = "menuitemradio"
+	case SelectionModeMultiple:
+		role = "menuitemcheckbox"
+	}
+	}}
+	<div
+		class={ utils.Cn("menu-item", "menu-item--"+p.Variant.String(), tw) }
+		data-slot="menu-item"
+		role={ role }
+		data-selection-mode={ c.menu.SelectionMode.String() }
+		if p.ID != "" {
+			data-id={ p.ID }
+		}
+		if c.menu.SelectionMode != SelectionModeNone {
+			aria-checked={ utils.BoolStr(p.DefaultSelected) }
+		}
+		if p.DefaultSelected {
+			data-selected="true"
+		}
+		if p.IsDisabled {
+			data-disabled="true"
+		}
+		{ p.Attrs... }
+	>
+		{ children... }
+	</div>
+}
+
+templ Section(tw ...string) {
+	<div
+		class={ utils.Cn("menu-section", tw) }
+		data-slot="menu-section"
+		role="group"
+	>
+		{ children... }
+	</div>
+}

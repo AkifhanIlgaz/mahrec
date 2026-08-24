@@ -6,18 +6,26 @@ import (
 	"mahrec/internal/models"
 	"mahrec/internal/web/templates/components"
 	"mahrec/internal/web/templates/layout"
-	"mahrec/internal/web/ui/button"
 	"mahrec/internal/web/ui/icons"
 )
 
 // Tally is the fullscreen "tesbih çekme" screen: the reading to recite,
-// centered above a live +1 counter. Taps are batched — debounced ~700ms of
-// idle, or flushed immediately when the screen is closed/backgrounded —
-// into a single Increment request for this same goal (the one the user
-// opened the screen from — no picker, since they already knew what they
-// were reading), rather than one request per tap. There's nothing ever
-// left meaningfully unsaved (the debounce window is short and flushed on
-// every way of leaving the screen), so Kapat is a plain "go home" link.
+// centered above a live circular-progress counter. Tapping the ring taps
+// off a +1. Taps are batched — debounced ~700ms of idle, or flushed
+// immediately when the screen is closed/backgrounded — into a single
+// Increment request for this same goal (the one the user opened the
+// screen from — no picker, since they already knew what they were
+// reading), rather than one request per tap. There's nothing ever left
+// meaningfully unsaved (the debounce window is short and flushed on
+// every way of leaving the screen), so the back button is a plain "go
+// home" link.
+templ tallyCompletedBadge() {
+	<span data-slot="tally-completed-badge" class="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5">
+		@icons.Status("tally-completed-icon", "success")
+		Tamamlandı
+	</span>
+}
+
 templ Tally(goal models.Goal, reading models.Reading, hasReading bool) {
 	@layout.Base(goal.Title + " · Tesbih") {
 		<div
@@ -25,43 +33,80 @@ templ Tally(goal models.Goal, reading models.Reading, hasReading bool) {
 			data-goal-id={ fmt.Sprintf("%d", goal.ID) }
 			data-remaining={ fmt.Sprintf("%d", goal.TargetCount-goal.CurrentCount) }
 			data-current={ fmt.Sprintf("%d", goal.CurrentCount) }
+			data-target={ fmt.Sprintf("%d", goal.TargetCount) }
 			class="fixed inset-0 z-40 flex flex-col bg-background"
 		>
-			<div class="flex flex-1 flex-col items-center overflow-y-auto p-6">
-				<div class="m-auto flex w-full max-w-xl flex-col items-center gap-4 text-center">
-					<h1 class="text-lg font-bold">{ goal.Title }</h1>
-					if goal.IsCompleted() {
-						<span data-slot="tally-completed-badge" class="-mt-2 inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success [&>svg]:size-3.5">
-							@icons.Status("tally-completed-icon", "success")
-							Tamamlandı
-						</span>
-					}
-					@components.ReadingContent(goal.Title, reading, hasReading)
-				</div>
+			<div class="flex items-center gap-3 p-4">
+				<a href="/" id="tally-close" aria-label="Geri" class="button button--outline button--sm button--icon-only shrink-0">
+					@icons.ArrowLeft("size-4")
+				</a>
+				<h1 class="text-lg font-bold">{ goal.Title }</h1>
 			</div>
-			<div class="border-t border-separator p-4">
-				<div class="mx-auto flex w-full max-w-xl flex-col items-center gap-3">
-					<div class="flex w-full items-center gap-4">
-						@button.Button(button.Props{
-							Variant:   button.VariantPrimary,
-							FullWidth: true,
-							Attrs:     templ.Attributes{"id": "tally-increment"},
-						}, "flex-1 py-7 text-3xl font-bold leading-none") {
-							+1
-						}
-						<span data-slot="tally-count" class="w-16 shrink-0 text-right text-6xl leading-none font-extrabold tabular-nums text-accent">
-							{ fmt.Sprintf("%d", goal.CurrentCount) }
-						</span>
+			if hasReading && !reading.IsEmpty() && reading.ImagePath != "" {
+				<div class="flex min-h-0 flex-1 flex-col items-center gap-3 px-4 pb-4">
+					if goal.IsCompleted() {
+						@tallyCompletedBadge()
+					}
+					<div class="flex min-h-0 w-full max-w-xl flex-1 items-center justify-center [&_[data-slot=zoomable-image]]:flex [&_[data-slot=zoomable-image]]:h-full [&_[data-slot=zoomable-image]]:w-full [&_[data-slot=zoomable-image]]:items-center [&_[data-slot=zoomable-image]]:justify-center [&_[data-slot=zoomable-image]_img]:h-full [&_[data-slot=zoomable-image]_img]:w-auto [&_[data-slot=zoomable-image]_img]:max-w-full [&_[data-slot=zoomable-image]_img]:object-contain">
+						@components.ReadingContent(goal.Title, reading, hasReading)
 					</div>
-					<a href="/" id="tally-close" class="button button--outline button--sm w-full">
-						Kapat
-					</a>
+				</div>
+			} else {
+				<div class="flex flex-1 flex-col items-center overflow-y-auto px-6 pb-6">
+					<div class="m-auto flex w-full max-w-xl flex-col items-center gap-4 text-center">
+						if goal.IsCompleted() {
+							@tallyCompletedBadge()
+						}
+						@components.ReadingContent(goal.Title, reading, hasReading)
+					</div>
+				</div>
+			}
+			<div class="border-t border-separator p-6">
+				<div class="mx-auto flex w-full max-w-xl flex-col items-center gap-3">
+					<span
+						id="tally-count"
+						data-slot="tally-count"
+						class={ "text-4xl leading-none font-extrabold tabular-nums", templ.KV("text-success", goal.IsCompleted()), templ.KV("text-accent", !goal.IsCompleted()) }
+					>
+						{ fmt.Sprintf("%d", goal.CurrentCount) }
+					</span>
+					<button
+						type="button"
+						id="tally-increment"
+						aria-label="Bir okuma ekle"
+						disabled?={ goal.IsCompleted() }
+						class="relative flex size-28 shrink-0 items-center justify-center rounded-full"
+					>
+						<svg viewBox="0 0 120 120" class="size-28 -rotate-90">
+							<circle cx="60" cy="60" r="54" stroke-width="6" fill="none" class="stroke-separator"></circle>
+							<circle
+								id="tally-ring-progress"
+								cx="60"
+								cy="60"
+								r="54"
+								stroke-width="6"
+								stroke-linecap="round"
+								fill="none"
+								class={ "transition-[stroke-dashoffset] duration-200 ease-out", templ.KV("stroke-success", goal.IsCompleted()), templ.KV("stroke-accent", !goal.IsCompleted()) }
+							></circle>
+						</svg>
+						<span
+							id="tally-ring-check"
+							class={ "absolute inset-0 items-center justify-center text-success [&>svg]:size-9", templ.KV("flex", goal.IsCompleted()), templ.KV("hidden", !goal.IsCompleted()) }
+						>
+							@icons.Check("size-9")
+						</span>
+					</button>
+					<p id="tally-hint" class={ "text-xs text-muted", templ.KV("hidden", goal.IsCompleted()) }>
+						Artırmak için halkaya dokun
+					</p>
 				</div>
 			</div>
 		</div>
 		<script>
 			(function () {
-				var DEBOUNCE_MS = 4000;
+				var DEBOUNCE_MS = 1000;
+				var CIRCUMFERENCE = 2 * Math.PI * 54;
 
 				var taps = 0;
 				var pending = 0; // tapped but not yet sent to the server
@@ -70,10 +115,33 @@ templ Tally(goal models.Goal, reading models.Reading, hasReading bool) {
 				var goalId = screen.getAttribute("data-goal-id");
 				var remaining = parseInt(screen.getAttribute("data-remaining"), 10) || 0;
 				var total = parseInt(screen.getAttribute("data-current"), 10) || 0;
+				var target = parseInt(screen.getAttribute("data-target"), 10) || 0;
 				var countEl = document.querySelector('[data-slot="tally-count"]');
 				var incrementBtn = document.getElementById("tally-increment");
+				var progressRing = document.getElementById("tally-ring-progress");
+				var checkEl = document.getElementById("tally-ring-check");
+				var hintEl = document.getElementById("tally-hint");
 
-				if (remaining <= 0) incrementBtn.disabled = true;
+				progressRing.style.strokeDasharray = CIRCUMFERENCE;
+
+				function renderProgress() {
+					var pct = target > 0 ? Math.min(total / target, 1) : 0;
+					progressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+				}
+
+				function markCompleted() {
+					incrementBtn.disabled = true;
+					countEl.classList.remove("text-accent");
+					countEl.classList.add("text-success");
+					progressRing.classList.remove("stroke-accent");
+					progressRing.classList.add("stroke-success");
+					checkEl.classList.remove("hidden");
+					checkEl.classList.add("flex");
+					hintEl.classList.add("hidden");
+				}
+
+				renderProgress();
+				if (remaining <= 0) markCompleted();
 
 				function flush() {
 					if (pending <= 0) return;
@@ -103,10 +171,17 @@ templ Tally(goal models.Goal, reading models.Reading, hasReading bool) {
 
 				incrementBtn.addEventListener("click", function () {
 					taps++;
-					if (taps >= remaining) incrementBtn.disabled = true;
 
 					total++;
 					countEl.textContent = total;
+					renderProgress();
+
+					if (taps >= remaining) {
+						markCompleted();
+						if (navigator.vibrate) navigator.vibrate([15, 60, 15, 60, 30]);
+					} else if (navigator.vibrate) {
+						navigator.vibrate(10);
+					}
 
 					pending++;
 					clearTimeout(debounceTimer);

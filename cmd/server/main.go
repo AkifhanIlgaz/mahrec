@@ -42,6 +42,7 @@ func main() {
 	app.Post("/goals", goalHandler.Create)
 	app.Get("/goals/:id/tally", goalHandler.Tally)
 	app.Post("/goals/:id/increment", goalHandler.Increment)
+	app.Post("/goals/:id/decrement", goalHandler.Decrement)
 	app.Post("/goals/:id/reset", goalHandler.Reset)
 	app.Delete("/goals/:id", goalHandler.Delete)
 

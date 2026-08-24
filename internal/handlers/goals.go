@@ -99,6 +99,28 @@ func (h *GoalHandler) Increment(c fiber.Ctx) error {
 	return components.GoalItem(goal).Render(c.Context(), c.Response().BodyWriter())
 }
 
+func (h *GoalHandler) Decrement(c fiber.Ctx) error {
+	clientID := middleware.FromCtx(c)
+
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid goal id")
+	}
+
+	amount, err := strconv.Atoi(c.FormValue("amount"))
+	if err != nil || amount <= 0 {
+		amount = 1
+	}
+
+	goal, err := h.goals.Decrement(clientID, id, amount)
+	if err != nil {
+		return err
+	}
+
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTMLCharsetUTF8)
+	return components.GoalItem(goal).Render(c.Context(), c.Response().BodyWriter())
+}
+
 func (h *GoalHandler) Reset(c fiber.Ctx) error {
 	clientID := middleware.FromCtx(c)
 
