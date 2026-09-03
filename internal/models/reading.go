@@ -39,6 +39,7 @@ var TitlePresets = []string{
 	"İstiğfar-ı Şerif",
 	"Havkale (Lâ Havle)",
 	"Cünnetü'l-Esmâ",
+	"Vallâhü Ğâlibün",
 }
 
 // titleReadings maps a preset to its Reading. Left blank for now — to be
@@ -71,6 +72,21 @@ var titleReadings = map[string]Reading{
 				Arabic:  "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nفَرْدٌ حَيٌّ قَيُّومٌ حَكَمٌ عَدْلٌ قُدُّوسٌ\nنَجِّنِي مِنَ الْقَوْمِ الظَّالِمِينَ",
 				Turkish: "Bismillâhirrahmânirrahîm.\nFerdün, Hayyun, Kayyûmun, Hakemün, Adlün, Kuddûsün.\nNeccinî minel-kavmiz-zâlimîn.",
 				Repeat:  3,
+			},
+		},
+	},
+	"Vallâhü Ğâlibün": {
+		Note: "Her 100 okuyuşta 99 defa ilk cümle, 100'üncüsünde ikinci cümle okunur.",
+		Steps: []ReadingStep{
+			{
+				Arabic:  "وَاللَّهُ غَالِبٌ عَلَىٰ أَمْرِهِ",
+				Turkish: "Vallâhü ğâlibün alâ emrih.",
+				Repeat:  99,
+			},
+			{
+				Arabic:  "وَاللَّهِ إِنَّكَ لَغَالِبٌ عَلَىٰ أَمْرِكَ",
+				Turkish: "Vallâhi inneke le ğâlibün alâ emrik.",
+				Repeat:  1,
 			},
 		},
 	},
